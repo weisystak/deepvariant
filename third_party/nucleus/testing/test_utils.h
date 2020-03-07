@@ -136,6 +136,28 @@ std::vector<Record> as_vector(const std::shared_ptr<Iterable<Record>>& it) {
   return records;
 }
 
+template<class Record>
+std::vector<Record> as_vector_reservoir_sample(const StatusOr<std::shared_ptr<Iterable<Record>>>& it, int max_reads) {
+  TF_CHECK_OK(it.status());
+  auto IT = it.ValueOrDie();
+  std::srand(609314161);
+  std::vector<Record> records;
+  unsigned int count = 0;
+  unsigned int random = 0;
+  for (const StatusOr<Record*> value_status : IT) {
+    if (count < max_reads){
+      records.push_back(*value_status.ValueOrDie());
+	}
+	else{
+      random = std::rand()%(count+1);
+      if (random < max_reads)
+	   records[random] = *value_status.ValueOrDie();
+	}
+	count++;
+  }
+  return records;
+}
+
 // Creates a test Read.
 //
 // The read has reference_name chr, start of start, aligned_sequence of bases,

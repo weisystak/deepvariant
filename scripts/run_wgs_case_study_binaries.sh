@@ -6,12 +6,12 @@ set -euo pipefail
 # Build binaries.
 # If you're using the pre-built binaries, you can skip these and just run
 # ./run-prereq.sh instead. And update the script to point to your *zip binaries.
-./build-prereq.sh
-./build_release_binaries.sh
+# ./build-prereq.sh
+# ./build_release_binaries.sh
 
 ## Preliminaries
 # Set a number of shell variables, to make what follows easier to read.
-BASE="${HOME}/case-study"
+BASE="/disk1/case-study"
 MODEL_VERSION="0.7.2"
 MODEL_NAME="DeepVariant-inception_v3-${MODEL_VERSION}+data-wgs_standard"
 MODEL_HTTP_DIR="https://storage.googleapis.com/deepvariant/models/DeepVariant/${MODEL_VERSION}/${MODEL_NAME}"
@@ -47,10 +47,10 @@ mkdir -p "${LOG_DIR}"
 # We are going to use [GNU Parallel](https://www.gnu.org/software/parallel/) to
 # run `make_examples`. We are going to install `samtools` and `docker.io` to help
 # do some analysis at the end.
-sudo apt-get -y update
-sudo apt-get -y install parallel
+# sudo apt-get -y update
+# sudo apt-get -y install parallel
 sudo apt-get -y install samtools
-sudo apt-get -y install docker.io
+# sudo apt-get -y install docker.io
 sudo apt-get -y install aria2
 
 
@@ -71,72 +71,72 @@ aria2c -c -x10 -s10 https://storage.googleapis.com/deepvariant/case-study-testda
 aria2c -c -x10 -s10 https://storage.googleapis.com/deepvariant/case-study-testdata/hs37d5.fa.gz.gzi -d "${DATA_DIR}"
 aria2c -c -x10 -s10 https://storage.googleapis.com/deepvariant/case-study-testdata/hs37d5.fa.gzi -d "${DATA_DIR}"
 
-## Run `make_examples`
-echo "Start running make_examples...Log will be in the terminal and also to ${LOG_DIR}/make_examples.log."
-( time seq 0 $((N_SHARDS-1)) | \
-  parallel -k --line-buffer \
-    python ./bazel-bin/deepvariant/make_examples.zip \
-      --mode calling \
-      --ref "${REF}" \
-      --reads "${BAM}" \
-      --examples "${EXAMPLES}" \
-      --gvcf "${GVCF_TFRECORDS}" \
-      --task {} \
-) 2>&1 | tee "${LOG_DIR}/make_examples.log"
-echo "Done."
-echo
+# ## Run `make_examples`
+# echo "Start running make_examples...Log will be in the terminal and also to ${LOG_DIR}/make_examples.log."
+# ( time seq 0 $((N_SHARDS-1)) | \
+#   parallel -k --line-buffer \
+#     python ./bazel-bin/deepvariant/make_examples.zip \
+#       --mode calling \
+#       --ref "${REF}" \
+#       --reads "${BAM}" \
+#       --examples "${EXAMPLES}" \
+#       --gvcf "${GVCF_TFRECORDS}" \
+#       --task {} \
+# ) 2>&1 | tee "${LOG_DIR}/make_examples.log"
+# echo "Done."
+# echo
 
-## Run `call_variants`
-echo "Start running call_variants...Log will be in the terminal and also to ${LOG_DIR}/call_variants.log."
-( time python ./bazel-bin/deepvariant/call_variants.zip \
-    --outfile "${CALL_VARIANTS_OUTPUT}" \
-    --examples "${EXAMPLES}" \
-    --checkpoint "${MODEL}"
-) 2>&1 | tee "${LOG_DIR}/call_variants.log"
-echo "Done."
-echo
+# ## Run `call_variants`
+# echo "Start running call_variants...Log will be in the terminal and also to ${LOG_DIR}/call_variants.log."
+# ( time python ./bazel-bin/deepvariant/call_variants.zip \
+#     --outfile "${CALL_VARIANTS_OUTPUT}" \
+#     --examples "${EXAMPLES}" \
+#     --checkpoint "${MODEL}"
+# ) 2>&1 | tee "${LOG_DIR}/call_variants.log"
+# echo "Done."
+# echo
 
-## Run `postprocess_variants`, without gVCFs.
-echo "Start running postprocess_variants (without gVCFs)...Log will be in the terminal and also to ${LOG_DIR}/postprocess_variants.log."
-( time python ./bazel-bin/deepvariant/postprocess_variants.zip \
-    --ref "${REF}" \
-    --infile "${CALL_VARIANTS_OUTPUT}" \
-    --outfile "${OUTPUT_VCF}"
-) 2>&1 | tee "${LOG_DIR}/postprocess_variants.log"
-echo "Done."
-echo
+# ## Run `postprocess_variants`, without gVCFs.
+# echo "Start running postprocess_variants (without gVCFs)...Log will be in the terminal and also to ${LOG_DIR}/postprocess_variants.log."
+# ( time python ./bazel-bin/deepvariant/postprocess_variants.zip \
+#     --ref "${REF}" \
+#     --infile "${CALL_VARIANTS_OUTPUT}" \
+#     --outfile "${OUTPUT_VCF}"
+# ) 2>&1 | tee "${LOG_DIR}/postprocess_variants.log"
+# echo "Done."
+# echo
 
-## Run `postprocess_variants`, with gVCFs.
-echo "Start running postprocess_variants (with gVCFs)...Log will be in the terminal and also to ${LOG_DIR}/postprocess_variants.withGVCF.log."
-( time python ./bazel-bin/deepvariant/postprocess_variants.zip \
-    --ref "${REF}" \
-    --infile "${CALL_VARIANTS_OUTPUT}" \
-    --outfile "${OUTPUT_VCF}" \
-    --nonvariant_site_tfrecord_path "${GVCF_TFRECORDS}" \
-    --gvcf_outfile "${OUTPUT_GVCF}"
-) 2>&1 | tee "${LOG_DIR}/postprocess_variants.withGVCF.log"
-echo "Done."
-echo
+# ## Run `postprocess_variants`, with gVCFs.
+# echo "Start running postprocess_variants (with gVCFs)...Log will be in the terminal and also to ${LOG_DIR}/postprocess_variants.withGVCF.log."
+# ( time python ./bazel-bin/deepvariant/postprocess_variants.zip \
+#     --ref "${REF}" \
+#     --infile "${CALL_VARIANTS_OUTPUT}" \
+#     --outfile "${OUTPUT_VCF}" \
+#     --nonvariant_site_tfrecord_path "${GVCF_TFRECORDS}" \
+#     --gvcf_outfile "${OUTPUT_GVCF}"
+# ) 2>&1 | tee "${LOG_DIR}/postprocess_variants.withGVCF.log"
+# echo "Done."
+# echo
 
-## Evaluation: run hap.py
-echo "Start evaluation with hap.py..."
-UNCOMPRESSED_REF="${OUTPUT_DIR}/hs37d5.fa"
+# ## Evaluation: run hap.py
+# echo "Start evaluation with hap.py..."
+# UNCOMPRESSED_REF="${OUTPUT_DIR}/hs37d5.fa"
 
-# hap.py cannot read the compressed fa, so uncompress
-# into a writable directory and index it.
-zcat <"${REF}" >"${UNCOMPRESSED_REF}"
-samtools faidx "${UNCOMPRESSED_REF}"
+# # hap.py cannot read the compressed fa, so uncompress
+# # into a writable directory and index it.
+# zcat <"${REF}" >"${UNCOMPRESSED_REF}"
+# samtools faidx "${UNCOMPRESSED_REF}"
 
-sudo docker pull pkrusche/hap.py
-( sudo docker run -i \
--v "${DATA_DIR}:${DATA_DIR}" \
--v "${OUTPUT_DIR}:${OUTPUT_DIR}" \
-pkrusche/hap.py /opt/hap.py/bin/hap.py \
-  "${TRUTH_VCF}" \
-  "${OUTPUT_VCF}" \
-  -f "${TRUTH_BED}" \
-  -r "${UNCOMPRESSED_REF}" \
-  -o "${OUTPUT_DIR}/happy.output" \
-  --engine=vcfeval
-) 2>&1 | tee "${LOG_DIR}/happy.log"
-echo "Done."
+# sudo docker pull pkrusche/hap.py
+# ( sudo docker run -i \
+# -v "${DATA_DIR}:${DATA_DIR}" \
+# -v "${OUTPUT_DIR}:${OUTPUT_DIR}" \
+# pkrusche/hap.py /opt/hap.py/bin/hap.py \
+#   "${TRUTH_VCF}" \
+#   "${OUTPUT_VCF}" \
+#   -f "${TRUTH_BED}" \
+#   -r "${UNCOMPRESSED_REF}" \
+#   -o "${OUTPUT_DIR}/happy.output" \
+#   --engine=vcfeval
+# ) 2>&1 | tee "${LOG_DIR}/happy.log"
+# echo "Done."

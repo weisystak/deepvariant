@@ -66,6 +66,55 @@ nucleus_py_library(
     ],
 )
 
+cc_binary(
+    name = "program",
+    # srcs = ["cpp_main.cc"],
+    srcs = ["cpp_main_customized.cc"],
+    testonly = True,
+    copts = ["-g"],
+    deps = ["@boost//:program_options",
+            ":main",
+            ":cppcommonutil",
+            ":cpprealigner",
+            "//third_party/nucleus/io:indexed_fasta_reader",
+            "//third_party/libzmq:libzmq",
+            "//third_party/nucleus/testing:cpp_test_utils",
+            "//third_party/nucleus/io:hts_verbose",
+            "//third_party/nucleus/io:sam_reader",
+            "//deepvariant/protos:deepvariant_cc_pb2",
+            "//deepvariant:variant_calling",
+            "//deepvariant:pileup_image_native",],
+)
+cc_library(
+    name = "cpprealigner",
+    srcs = ["cpp_realigner.cc",],
+    hdrs = ["cpp_realigner.h"],
+
+    deps = [
+        "//deepvariant/protos:deepvariant_cc_pb2",
+        "//deepvariant:allelecounter",
+        "//deepvariant/realigner:cpp_window_selector",
+        "//deepvariant/realigner:fast_pass_aligner",
+        "//deepvariant/realigner:debruijn_graph",
+        ":cppcommonutil",
+        "//third_party/nucleus/io:indexed_fasta_reader",
+	],
+)
+
+cc_library(
+    name = "cppcommonutil",
+    srcs = ["cpp_common_util.cc"],
+    hdrs = ["cpp_common_util.h"],
+    deps = [
+        "//deepvariant/protos:deepvariant_cc_pb2",
+    ],
+)
+cc_library(
+    name = "main",
+    srcs = [
+        "cpp_main.h",
+    ],
+)
 cc_library(
     name = "allelecounter",
     srcs = ["allelecounter.cc"],

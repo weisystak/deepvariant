@@ -1,0 +1,42 @@
+git clone -b r1.9 tensorflow 
+換absl
+tensorflow/tensorflow/workspace.bzl
+
+裝cmake
+https://cmake.org/download/
+./bootstrap
+make -j8
+sudo make install
+
+
+裝zmq
+git clone https://github.com/zeromq/libzmq
+cd libzmq
+mkdir build
+cd build
+cmake ..
+sudo make install -j8
+
+複製 cppdeepvariant/libzmq/zmq_addon.hpp zmq.hpp 到/usr/local/include
+
+virtualenv XXX
+source XXX/bin/activate
+pip install contextlib2
+pip install intervaltree
+pip install tensorflow-gpu==1.9.0
+
+cp cppdeepvariant/testing/test_utils.h deepvariant/third_party/nucleus/testing/
+cp cppdeepvariant/WORKSPACE deepvariant/
+cp -r cppdeepvariant/libzmq/ deepvariant/third_party/
+cp cppdeepvariant/deepvariant/* deepvariant/deepvariant/
+cp cppdeepvariant/call_variants_2new_customed.py deepvariant/deepvariant/
+
+編譯
+cd deepvariant
+bazel build --strip=never //deepvariant:program
+
+編zmqpullop 
+
+cd cppdeepvariant/customizedop
+bash build
+cp zmq_pull_op.so ~/deepvariant/deepvariant

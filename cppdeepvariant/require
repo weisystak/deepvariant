@@ -1,0 +1,67 @@
+
+
+git clone -b r0.7 --single-branch https://github.com/google/deepvariant.git
+
+
+git clone -b r1.9 --single-branch https://github.com/tensorflow/tensorflow.git
+換absl 
+tensorflow/tensorflow/workspace.bzl(這裡用tensorflow r1.12的)
+
+    tf_http_archive(
+        name = "com_google_absl",
+        build_file = clean_dep("//third_party:com_google_absl.BUILD"),
+        sha256 = "7dd09690ae7ca4551de3111d4a86b75b23ec17445f273d3c42bdcdc1c7b02e4e",
+        strip_prefix = "abseil-cpp-48cd2c3f351ff188bc85684b84a91b6e6d17d896",
+        urls = [
+            "https://mirror.bazel.build/github.com/abseil/abseil-cpp/archive/48cd2c3f351ff188bc85684b84a91b6e6d17d896.tar.gz",
+            "https://github.com/abseil/abseil-cpp/archive/48cd2c3f351ff188bc85684b84a91b6e6d17d896.tar.gz",
+        ],
+    )
+
+裝cmake
+https://cmake.org/download/
+wget https://github.com/Kitware/CMake/releases/download/v3.16.5/cmake-3.16.5.tar.gz
+tar zxvf [filename.tar.gz]
+./bootstrap
+make -j8
+sudo make install
+
+
+裝zmq
+git clone https://github.com/zeromq/libzmq
+cd libzmq
+mkdir build
+cd build
+cmake ..
+sudo make install -j
+
+裝cppzmq
+複製 sudo cp cppdeepvariant/libzmq/zmq_addon.hpp zmq.hpp 到/usr/local/include
+
+virtualenv XXX
+source XXX/bin/activate
+pip install contextlib2
+pip install intervaltree
+pip install tensorflow-gpu==1.9.0
+
+cp cppdeepvariant/testing/test_utils.h deepvariant/third_party/nucleus/testing/
+cp cppdeepvariant/WORKSPACE deepvariant/
+cp -r cppdeepvariant/libzmq/ deepvariant/third_party/
+cp cppdeepvariant/deepvariant/* deepvariant/deepvariant/
+cp cppdeepvariant/call_variants_2new_customed.py deepvariant/deepvariant/
+cp cppdeepvariant/install_bazel.sh deepvariant
+
+
+裝bazel
+bash install_bazel.sh
+
+
+編譯
+cd deepvariant
+ 
+
+編zmqpullop 
+
+cd cppdeepvariant/customizedop
+bash build
+cp zmq_pull_op.so ~/deepvariant/deepvariant
